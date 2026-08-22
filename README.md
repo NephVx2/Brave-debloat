@@ -1,5 +1,7 @@
 # Configure-Brave_Win11
 
+🇫🇷 [Version française](README_FRENCH.md)
+
 Interactive PowerShell menu that applies a curated set of Brave browser policies via the Windows registry (`HKLM\SOFTWARE\Policies\BraveSoftware\Brave`) — debloating, telemetry, network, and security hardening — with automatic `.reg` backups, a dry-run preview, one-click restore, and an integrity checker. Same architecture as [Block-Telemetry](../Block-Telemetry).
 
 > Every value is justified. Each policy carries a plain-language rationale in the script itself, two known Chromium regression traps are locked in by the self-test (`NetworkPredictionOptions`, `ComponentUpdatesEnabled`), and nothing marked "opt-in" is ever applied unless you explicitly ask for it.
