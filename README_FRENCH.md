@@ -1,5 +1,6 @@
 # Configure-Brave_Win11
 
+🇬🇧 [English version](README.md)
 
 Menu PowerShell interactif qui applique un jeu de policies Brave soigneusement choisies via le registre Windows (`HKLM\SOFTWARE\Policies\BraveSoftware\Brave`) — debloating, telemetrie, reseau et durcissement de securite — avec sauvegardes `.reg` automatiques, previsualisation en mode simulation, restauration en un clic, et verificateur d'integrite. Meme architecture que [Block-Telemetry](../Block-Telemetry).
 
