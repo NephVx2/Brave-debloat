@@ -1,4 +1,4 @@
-# Configure-Brave_Win11
+# Brave-Debloat
 
 🇬🇧 [English version](README.md)
 
@@ -27,7 +27,7 @@ Menu PowerShell interactif qui applique un jeu de policies Brave soigneusement c
 
 ## Presentation
 
-`Configure-Brave_Win11_v3.ps1` ecrit des policies Brave a l'echelle machine dans le registre — le meme mecanisme que les services informatiques d'entreprise utilisent pour gerer Brave via Group Policy, applique ici a une seule machine via un script controle et reversible plutot qu'un controleur de domaine.
+`Brave-Debloat_v3.1.ps1` ecrit des policies Brave a l'echelle machine dans le registre — le meme mecanisme que les services informatiques d'entreprise utilisent pour gerer Brave via Group Policy, applique ici a une seule machine via un script controle et reversible plutot qu'un controleur de domaine.
 
 Il touche **une seule cle de registre et son arborescence** : `HKLM\SOFTWARE\Policies\BraveSoftware\Brave`. Il ne modifie pas directement les parametres du profil utilisateur Brave, ne touche a aucun autre navigateur, et n'installe ni ne desinstalle rien.
 
@@ -138,14 +138,14 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 
 ## Premier lancement (pas a pas)
 
-1. Copier `Configure-Brave_Win11_v3.ps1` sur la machine cible.
+1. Copier `Brave-Debloat_v3.1.ps1` sur la machine cible.
 
 2. Ouvrir un terminal PowerShell (pas besoin de le lancer en admin a la main — le script s'auto-eleve, sauf pour les verifications en lecture seule ci-dessous).
 
 3. Lancer d'abord le self-test — lecture seule, aucun droit admin requis :
 
    ```powershell
-   .\Configure-Brave_Win11_v3.ps1 -SelfTest
+   .\Brave-Debloat_v3.1.ps1 -SelfTest
    ```
 
    Execute 19 assertions : integrite de la liste de policies (pas de doublons, types de valeurs corrects), les deux garde-fous de regression (`NetworkPredictionOptions` = 2, `ComponentUpdatesEnabled` = 1), Lockdown/DoH restent absents sans demande explicite, les DevTools restent actifs meme sous Lockdown, traduction/correcteur orthographique confirmes absents de tout le script, et plusieurs fonctions internes s'executent sans lever d'exception. Code de sortie `0` = tout passe, `1` = au moins un echec.
@@ -153,13 +153,13 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 4. *(Optionnel)* Inspecter la liste complete des policies sans toucher au registre :
 
    ```powershell
-   .\Configure-Brave_Win11_v3.ps1 -DebugDefs
+   .\Brave-Debloat_v3.1.ps1 -DebugDefs
    ```
 
 5. Lancer le script normalement (accepter le prompt UAC) :
 
    ```powershell
-   .\Configure-Brave_Win11_v3.ps1
+   .\Brave-Debloat_v3.1.ps1
    ```
 
 6. Depuis le menu, previsualiser ce qui changerait **sans rien ecrire** :
@@ -216,11 +216,11 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 **Exemples :**
 
 ```powershell
-.\Configure-Brave_Win11_v3.ps1 -SelfTest
-.\Configure-Brave_Win11_v3.ps1 -Category Telemetrie,Reseau
-.\Configure-Brave_Win11_v3.ps1 -IncludeLockdown
-.\Configure-Brave_Win11_v3.ps1 -SafeBrowsingLevel Enhanced
-.\Configure-Brave_Win11_v3.ps1 -DnsOverHttpsTemplate "https://dns.nextdns.io/xxxxxx"
+.\Brave-Debloat_v3.1.ps1 -SelfTest
+.\Brave-Debloat_v3.1.ps1 -Category Telemetrie,Reseau
+.\Brave-Debloat_v3.1.ps1 -IncludeLockdown
+.\Brave-Debloat_v3.1.ps1 -SafeBrowsingLevel Enhanced
+.\Brave-Debloat_v3.1.ps1 -DnsOverHttpsTemplate "https://dns.nextdns.io/xxxxxx"
 ```
 
 ---
@@ -229,10 +229,10 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 
 | Fichier / dossier | Contenu |
 |---|---|
-| `%USERPROFILE%\Desktop\Registry_Backups\ConfigBrave\*.reg` | Export `reg export` complet de la cle de policies, pris avant chaque ecriture reelle (rotation automatique, 10 dernieres conservees) |
-| `%USERPROFILE%\Desktop\Configure-Brave_Log.txt` | Journal d'actions en texte brut (ajout uniquement) |
-| `%USERPROFILE%\Desktop\Rapports_Maintenance\ConfigBrave\_dernier_etat.json` | Instantane du dernier etat applique, utilise par la verification d'integrite |
-| `%USERPROFILE%\Desktop\Rapports_Maintenance\ConfigBrave\*.csv` / `*.json` / `*.html` | Rapports generes via l'option de menu `[7]` |
+| `%USERPROFILE%\Desktop\Registry_Backups\BraveDebloat\*.reg` | Export `reg export` complet de la cle de policies, pris avant chaque ecriture reelle (rotation automatique, 10 dernieres conservees) |
+| `%USERPROFILE%\Desktop\Brave-Debloat_Log.txt` | Journal d'actions en texte brut (ajout uniquement) |
+| `%USERPROFILE%\Desktop\Rapports_Maintenance\BraveDebloat\_dernier_etat.json` | Instantane du dernier etat applique, utilise par la verification d'integrite |
+| `%USERPROFILE%\Desktop\Rapports_Maintenance\BraveDebloat\*.csv` / `*.json` / `*.html` | Rapports generes via l'option de menu `[7]` |
 | Fichier d'export *(a la demande, option de menu `[10]`)* | Liste texte des policies actuellement actives |
 
 `-SelfTest` et `-DebugDefs` n'ecrivent **aucun** fichier et ne touchent **aucune** cle de registre.
@@ -289,4 +289,4 @@ Editer directement sa ligne `New-Policy` dans `Get-BravePolicyDefinitions`, puis
 
 ---
 
-<sub>Configure-Brave_Win11 — base sur le registre (policies HKLM uniquement), sauvegarde automatique avant chaque modification, rien d'opt-in applique sans flag explicite.</sub>
+<sub>Brave-Debloat — base sur le registre (policies HKLM uniquement), sauvegarde automatique avant chaque modification, rien d'opt-in applique sans flag explicite.</sub>
