@@ -12,6 +12,7 @@ Menu PowerShell interactif qui applique un jeu de policies Brave soigneusement c
 
 - [Presentation](#presentation)
 - [Fonctionnement](#fonctionnement)
+- [Rapports et affichage console](#rapports-et-affichage-console)
 - [Ce qui est configure](#ce-qui-est-configure)
 - [Opt-in uniquement : Lockdown et DNS-over-HTTPS](#opt-in-uniquement--lockdown-et-dns-over-https)
 - [Garanties de securite](#garanties-de-securite)
@@ -46,6 +47,13 @@ Comme `Block-Telemetry`, c'est un outil **pilote par menu** — appliquer, mettr
 4. La restauration re-importe la derniere sauvegarde, ramenant la cle de registre exactement a son etat avant que ce script n'y touche.
 
 5. Une **verification d'integrite** (option de menu `[9]`) relit chaque policy que ce script est cense gerer et signale toute derive par rapport a sa cible — utile apres une mise a jour de Brave, qui reinitialise ou ignore occasionnellement certaines policies.
+
+---
+
+## Rapports et affichage console
+
+- Le **rapport HTML** (option de menu `[7]`, et genere automatiquement apres chaque application/mise a jour/simulation) reprend le meme style visuel sombre que le reste de la suite : bandeau d'en-tete a degrade, logo Windows, et une palette de couleurs partagee pour les badges de statut (applique / inchange / echec). Il s'**ouvre automatiquement** dans le navigateur par defaut juste apres sa generation, en plus d'etre ecrit sur le disque.
+- Le **diff en mode simulation** (option de menu `[3]`) est affiche ligne par ligne, horodate et colore — icone, categorie, nom de la policy, ancienne → nouvelle valeur — plutot que dans un tableau a largeur fixe. Ainsi, une seule valeur longue (par ex. `default_public_interface_only` pour `WebRtcIPHandling`) ne deforme plus jamais l'alignement des autres lignes.
 
 ---
 
@@ -194,7 +202,7 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 | `[4]` | **Restaurer** les parametres d'origine depuis la derniere sauvegarde |
 | `[5]` | Lister les sauvegardes disponibles |
 | `[6]` | Vider le cache DNS manuellement |
-| `[7]` | Generer un rapport HTML |
+| `[7]` | Generer un rapport HTML (s'ouvre automatiquement dans le navigateur par defaut) |
 | `[8]` | Verifier les conflits (policies HKCU surchargeant HKLM, sous-cle `Recommended` presente, residus d'une version precedente) |
 | `[9]` | Verifier l'integrite — policies definies vs ce qui est reellement actif dans le registre en ce moment |
 | `[10]` | Exporter la liste de policies actuellement active vers un fichier `.txt` |
