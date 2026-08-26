@@ -12,6 +12,7 @@ Interactive PowerShell menu that applies a curated set of Brave browser policies
 
 - [Overview](#overview)
 - [How it works](#how-it-works)
+- [Reports and console output](#reports-and-console-output)
 - [What gets configured](#what-gets-configured)
 - [Opt-in only: Lockdown and DNS-over-HTTPS](#opt-in-only-lockdown-and-dns-over-https)
 - [Safety guarantees](#safety-guarantees)
@@ -46,6 +47,13 @@ Like `Block-Telemetry`, this is a **menu-driven** tool — applying, updating, a
 4. Restoring re-imports the last backup, returning the registry key to exactly what it was before this script ever touched it.
 
 5. An **integrity check** (menu option `[9]`) re-reads every policy this script is supposed to manage and flags any that drifted from its target — useful after a Brave update, which occasionally resets or ignores specific policies.
+
+---
+
+## Reports and console output
+
+- The **HTML report** (menu option `[7]`, and generated automatically after every apply/update/dry-run) uses the same dark-themed visual style as the rest of the suite: gradient header banner, Windows logo, and a shared color palette for status badges (applied / unchanged / failed). It **opens automatically** in your default browser right after being generated, in addition to being written to disk.
+- The **dry-run diff** (menu option `[3]`) is rendered as individual timestamped, color-coded lines — icon, category, policy name, old → new value — instead of a fixed-width table. This means a single long value (e.g. `WebRtcIPHandling`'s `default_public_interface_only`) never distorts the alignment of every other row.
 
 ---
 
@@ -194,7 +202,7 @@ Forces Brave's own DoH resolver to a specific endpoint you provide. Absent by de
 | `[4]` | **Restore** the original settings from the last backup |
 | `[5]` | List available backups |
 | `[6]` | Flush the DNS cache manually |
-| `[7]` | Generate an HTML report |
+| `[7]` | Generate an HTML report (opens automatically in your default browser) |
 | `[8]` | Check for conflicts (HKCU-level policies overriding HKLM, a `Recommended` subkey present, leftover residue from a previous version) |
 | `[9]` | Check integrity — defined policies vs. what's actually active in the registry right now |
 | `[10]` | Export the currently active policy list to a `.txt` file |
