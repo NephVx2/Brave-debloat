@@ -2,14 +2,28 @@
 
 🇬🇧 [English version](README.md)
 
-Menu PowerShell interactif qui applique un jeu de policies Brave soigneusement choisies via le registre Windows (`HKLM\SOFTWARE\Policies\BraveSoftware\Brave`) — debloating, telemetrie, reseau et durcissement de securite — avec sauvegardes `.reg` automatiques, previsualisation en mode simulation, restauration en un clic, et verificateur d'integrite. Meme architecture que [Block-Telemetry](../Block-Telemetry).
+Menu PowerShell interactif qui applique un jeu de policies Brave soigneusement choisies via le registre Windows (`HKLM\SOFTWARE\Policies\BraveSoftware\Brave`) — debloating, telemetrie, reseau et durcissement de securite — avec sauvegardes `.reg` automatiques, previsualisation en mode simulation, restauration en un clic, et verificateur d'integrite. Meme architecture que [Block-Telemetry](https://github.com/NephVx2/Block-Telemetry).
 
 > Chaque valeur est justifiee. Chaque policy porte une justification en langage clair directement dans le script, deux pieges de regression Chromium connus sont verrouilles par le self-test (`NetworkPredictionOptions`, `ComponentUpdatesEnabled`), et rien de marque "opt-in" n'est jamais applique sans que vous ne le demandiez explicitement.
 
 ---
 
+## Captures d'ecran
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/01-menu-preview.png" width="49%" />
+  <img src="https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/05-html-preview.png" width="49%" />
+</p>
+
+D'autres captures (diff en mode simulation, verification d'integrite, rapport HTML complet) sont dans le dossier [`screenshots/`](https://github.com/NephVx2/Brave-Debloat/tree/main/screenshots).
+
+> **Note :** l'interface (console + rapport HTML) est entierement en anglais depuis la v3.2.0. Ce README reste en francais pour les explications, mais les captures et le texte cite ci-dessous montrent l'ecran reel tel qu'il s'affiche.
+
+---
+
 ## Sommaire
 
+- [Captures d'ecran](#captures-decran)
 - [Presentation](#presentation)
 - [Fonctionnement](#fonctionnement)
 - [Rapports et affichage console](#rapports-et-affichage-console)
@@ -28,7 +42,7 @@ Menu PowerShell interactif qui applique un jeu de policies Brave soigneusement c
 
 ## Presentation
 
-`Brave-Debloat_v3.1.ps1` ecrit des policies Brave a l'echelle machine dans le registre — le meme mecanisme que les services informatiques d'entreprise utilisent pour gerer Brave via Group Policy, applique ici a une seule machine via un script controle et reversible plutot qu'un controleur de domaine.
+`Brave-Debloat.ps1` ecrit des policies Brave a l'echelle machine dans le registre — le meme mecanisme que les services informatiques d'entreprise utilisent pour gerer Brave via Group Policy, applique ici a une seule machine via un script controle et reversible plutot qu'un controleur de domaine.
 
 Il touche **une seule cle de registre et son arborescence** : `HKLM\SOFTWARE\Policies\BraveSoftware\Brave`. Il ne modifie pas directement les parametres du profil utilisateur Brave, ne touche a aucun autre navigateur, et n'installe ni ne desinstalle rien.
 
@@ -48,12 +62,19 @@ Comme `Block-Telemetry`, c'est un outil **pilote par menu** — appliquer, mettr
 
 5. Une **verification d'integrite** (option de menu `[9]`) relit chaque policy que ce script est cense gerer et signale toute derive par rapport a sa cible — utile apres une mise a jour de Brave, qui reinitialise ou ignore occasionnellement certaines policies.
 
+   ![Verification d'integrite des policies](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/03-policy-integrity.png)
+
 ---
 
 ## Rapports et affichage console
 
 - Le **rapport HTML** (option de menu `[7]`, et genere automatiquement apres chaque application/mise a jour/simulation) reprend le meme style visuel sombre que le reste de la suite : bandeau d'en-tete a degrade, logo Windows, et une palette de couleurs partagee pour les badges de statut (applique / inchange / echec). Il s'**ouvre automatiquement** dans le navigateur par defaut juste apres sa generation, en plus d'etre ecrit sur le disque.
+
+  ![Generation du rapport HTML](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/04-html-report.png)
+
 - Le **diff en mode simulation** (option de menu `[3]`) est affiche ligne par ligne, horodate et colore — icone, categorie, nom de la policy, ancienne → nouvelle valeur — plutot que dans un tableau a largeur fixe. Ainsi, une seule valeur longue (par ex. `default_public_interface_only` pour `WebRtcIPHandling`) ne deforme plus jamais l'alignement des autres lignes.
+
+  ![Apercu du diff en mode simulation](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/02-dryrun-preview.png)
 
 ---
 
@@ -68,19 +89,19 @@ Desactive les fonctionnalites propres a Brave non utilisees dans cette configura
 </details>
 
 <details>
-<summary><strong>Telemetrie</strong> — 13 policies</summary>
+<summary><strong>Telemetry</strong> — 13 policies</summary>
 
 Le P3A propre a Brave (Privacy-Preserving Product Analytics), le ping de stats quotidien (ceci ne bloque **pas** `laptop-updates.brave.com`, qui reste joignable pour les mises a jour binaires — seul le ping lui-meme est coupe), Web Discovery Project, le reporting generique de crash/usage Chromium, le contact avec Google sur les pages d'erreur, la detection de moyens de paiement par les sites, l'envoi en temps reel de la frappe au moteur de suggestions, les sondages de feedback, la collecte de donnees "anonymisees" liees a l'URL, le rapport etendu Safe Browsing, la collecte de logs WebRTC vers Google, et le cloud reporting (sans effet sur un poste perso non enrole, conserve par coherence de defense en profondeur).
 </details>
 
 <details>
-<summary><strong>Reseau</strong> — 5 policies (7 avec DNS-over-HTTPS active)</summary>
+<summary><strong>Network</strong> — 5 policies (7 avec DNS-over-HTTPS active)</summary>
 
 `NetworkPredictionOptions` regle sur **2** — c'est le seul reglage de tout le catalogue avec un piege de regression documente : 0 ou 1 signifient tous les deux que la prediction est *active*, seul 2 desactive reellement le DNS prefetch/preconnect. Egalement : empeche Brave de tourner en arriere-plan apres la fermeture de la fenetre, empeche WebRTC de reveler une IP locale/privee meme derriere un VPN ou un proxy, force le resolveur DNS de l'OS plutot que le resolveur interne de Chromium (coherent avec un filtre DNS systeme comme NextDNS), et desactive la detection automatique de proxy WPAD a chaque changement de reseau.
 </details>
 
 <details>
-<summary><strong>Securite</strong> — 8 policies</summary>
+<summary><strong>Security</strong> — 8 policies</summary>
 
 `ComponentUpdatesEnabled` est explicitement laisse **actif** — ce n'est pas seulement le binaire Brave, cela couvre aussi Widevine, les listes Safe Browsing, et le magasin de certificats racine, donc cette policy n'est jamais touchee. Egalement : force les mises a niveau HTTPS quand disponibles, niveau Safe Browsing configurable (voir ci-dessous), bloque les outils externes de s'attacher au port de debogage distant de Brave, bloque l'authentification HTTP Basic transmise en clair, empeche l'authentification NTLM/Kerberos automatique de fuiter des identifiants Windows en navigation privee, bloque le spoofing par prompt d'authentification cross-origin, et desactive les Signed HTTP Exchanges (qui peuvent masquer l'origine reelle d'une page).
 </details>
@@ -146,40 +167,40 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 
 ## Premier lancement (pas a pas)
 
-1. Copier `Brave-Debloat_v3.1.ps1` sur la machine cible.
+1. Copier `Brave-Debloat.ps1` sur la machine cible.
 
 2. Ouvrir un terminal PowerShell (pas besoin de le lancer en admin a la main — le script s'auto-eleve, sauf pour les verifications en lecture seule ci-dessous).
 
 3. Lancer d'abord le self-test — lecture seule, aucun droit admin requis :
 
    ```powershell
-   .\Brave-Debloat_v3.1.ps1 -SelfTest
+   .\Brave-Debloat.ps1 -SelfTest
    ```
 
-   Execute 19 assertions : integrite de la liste de policies (pas de doublons, types de valeurs corrects), les deux garde-fous de regression (`NetworkPredictionOptions` = 2, `ComponentUpdatesEnabled` = 1), Lockdown/DoH restent absents sans demande explicite, les DevTools restent actifs meme sous Lockdown, traduction/correcteur orthographique confirmes absents de tout le script, et plusieurs fonctions internes s'executent sans lever d'exception. Code de sortie `0` = tout passe, `1` = au moins un echec.
+   Execute 21 assertions : integrite de la liste de policies (pas de doublons, types de valeurs corrects), les deux garde-fous de regression (`NetworkPredictionOptions` = 2, `ComponentUpdatesEnabled` = 1), Lockdown/DoH restent absents sans demande explicite, les DevTools restent actifs meme sous Lockdown, traduction/correcteur orthographique confirmes absents de tout le script, et plusieurs fonctions internes s'executent sans lever d'exception. Code de sortie `0` = tout passe, `1` = au moins un echec.
 
 4. *(Optionnel)* Inspecter la liste complete des policies sans toucher au registre :
 
    ```powershell
-   .\Brave-Debloat_v3.1.ps1 -DebugDefs
+   .\Brave-Debloat.ps1 -DebugDefs
    ```
 
 5. Lancer le script normalement (accepter le prompt UAC) :
 
    ```powershell
-   .\Brave-Debloat_v3.1.ps1
+   .\Brave-Debloat.ps1
    ```
 
 6. Depuis le menu, previsualiser ce qui changerait **sans rien ecrire** :
 
    ```
-   [3] Simuler sans modifier (DryRun)
+   [3] Simulate without changing (DryRun)
    ```
 
 7. Appliquer les policies pour de vrai :
 
    ```
-   [1] Appliquer les modifications
+   [1] Apply changes
    ```
 
    Sauvegarde l'etat actuel du registre, ecrit les valeurs cibles, et enregistre le resultat pour les rapports.
@@ -214,9 +235,9 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 
 | Parametre | Description |
 |---|---|
-| `-SelfTest` | Execute la batterie de tests internes a 19 assertions puis quitte. Aucun droit admin requis, registre jamais touche. |
+| `-SelfTest` | Execute la batterie de tests internes a 21 assertions puis quitte. Aucun droit admin requis, registre jamais touche. |
 | `-DebugDefs` | Affiche la liste numerotee complete des policies (nom + categorie) telle que definie actuellement, plus deux verifications de presence de policies nommees, puis quitte. Aucun droit admin requis, registre jamais touche. |
-| `-Category <nom(s)>` | Restreint une action a une ou plusieurs categories (ex : `-Category Telemetrie,Reseau`) au lieu de l'ensemble complet. |
+| `-Category <nom(s)>` | Restreint une action a une ou plusieurs categories (ex : `-Category Telemetry,Network`) au lieu de l'ensemble complet. |
 | `-IncludeLockdown` | Ajoute les 5 policies Lockdown opt-in a l'action lancee (appliquer/mettre a jour/simuler). Voir [Opt-in uniquement](#opt-in-uniquement--lockdown-et-dns-over-https). |
 | `-SafeBrowsingLevel <Off\|Standard\|Enhanced>` | Regle le niveau Safe Browsing de Brave. Par defaut `Standard` (listes locales, pas de partage temps reel avec Google). `Enhanced` offre une meilleure detection mais envoie en continu des URL et echantillons de page a Google. `Off` est disponible mais deconseille. |
 | `-DnsOverHttpsTemplate <url>` | Fournir ce parametre active les 2 policies DoH opt-in, pointees vers votre URL. Voir [Opt-in uniquement](#opt-in-uniquement--lockdown-et-dns-over-https). |
@@ -224,11 +245,11 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 **Exemples :**
 
 ```powershell
-.\Brave-Debloat_v3.1.ps1 -SelfTest
-.\Brave-Debloat_v3.1.ps1 -Category Telemetrie,Reseau
-.\Brave-Debloat_v3.1.ps1 -IncludeLockdown
-.\Brave-Debloat_v3.1.ps1 -SafeBrowsingLevel Enhanced
-.\Brave-Debloat_v3.1.ps1 -DnsOverHttpsTemplate "https://dns.nextdns.io/xxxxxx"
+.\Brave-Debloat.ps1 -SelfTest
+.\Brave-Debloat.ps1 -Category Telemetry,Network
+.\Brave-Debloat.ps1 -IncludeLockdown
+.\Brave-Debloat.ps1 -SafeBrowsingLevel Enhanced
+.\Brave-Debloat.ps1 -DnsOverHttpsTemplate "https://dns.nextdns.io/xxxxxx"
 ```
 
 ---
@@ -237,10 +258,10 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 
 | Fichier / dossier | Contenu |
 |---|---|
-| `%USERPROFILE%\Desktop\Registry_Backups\BraveDebloat\*.reg` | Export `reg export` complet de la cle de policies, pris avant chaque ecriture reelle (rotation automatique, 10 dernieres conservees) |
-| `%USERPROFILE%\Desktop\Brave-Debloat_Log.txt` | Journal d'actions en texte brut (ajout uniquement) |
-| `%USERPROFILE%\Desktop\Rapports_Maintenance\BraveDebloat\_dernier_etat.json` | Instantane du dernier etat applique, utilise par la verification d'integrite |
-| `%USERPROFILE%\Desktop\Rapports_Maintenance\BraveDebloat\*.csv` / `*.json` / `*.html` | Rapports generes via l'option de menu `[7]` |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\Registry-Backups\*.reg` | Export `reg export` complet de la cle de policies, pris avant chaque ecriture reelle (rotation automatique, 10 dernieres conservees) |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\Brave-Debloat_Log.txt` | Journal d'actions en texte brut (ajout uniquement) |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\_last_state.json` | Instantane du dernier etat applique, utilise par la verification d'integrite |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\*.csv` / `*.json` / `*.html` | Rapports generes via l'option de menu `[7]` |
 | Fichier d'export *(a la demande, option de menu `[10]`)* | Liste texte des policies actuellement actives |
 
 `-SelfTest` et `-DebugDefs` n'ecrivent **aucun** fichier et ne touchent **aucune** cle de registre.
@@ -286,7 +307,7 @@ Une policy au niveau HKCU pour le meme parametre, ou une sous-cle `Recommended` 
 <details>
 <summary><strong>-SelfTest signale un FAIL</strong></summary>
 
-Les 19 assertions sont des verifications de coherence interne sur les definitions de policies et les fonctions auxiliaires — un FAIL pointe vers un invariant precis casse (ex : `NetworkPredictionOptions` ne ciblant plus 2, un nom de policy duplique, des policies Lockdown presentes sans `-IncludeLockdown`). Lire le nom de l'assertion en echec pour identifier le probleme precis.
+Les 21 assertions sont des verifications de coherence interne sur les definitions de policies et les fonctions auxiliaires — un FAIL pointe vers un invariant precis casse (ex : `NetworkPredictionOptions` ne ciblant plus 2, un nom de policy duplique, des policies Lockdown presentes sans `-IncludeLockdown`). Lire le nom de l'assertion en echec pour identifier le probleme precis.
 </details>
 
 <details>
