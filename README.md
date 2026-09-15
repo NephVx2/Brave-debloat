@@ -2,14 +2,26 @@
 
 🇫🇷 [Version française](README_FRENCH.md)
 
-Interactive PowerShell menu that applies a curated set of Brave browser policies via the Windows registry (`HKLM\SOFTWARE\Policies\BraveSoftware\Brave`) — debloating, telemetry, network, and security hardening — with automatic `.reg` backups, a dry-run preview, one-click restore, and an integrity checker. Same architecture as [Block-Telemetry](../Block-Telemetry).
+Interactive PowerShell menu that applies a curated set of Brave browser policies via the Windows registry (`HKLM\SOFTWARE\Policies\BraveSoftware\Brave`) — debloating, telemetry, network, and security hardening — with automatic `.reg` backups, a dry-run preview, one-click restore, and an integrity checker. Same architecture as [Block-Telemetry](https://github.com/NephVx2/Block-Telemetry).
 
 > Every value is justified. Each policy carries a plain-language rationale in the script itself, two known Chromium regression traps are locked in by the self-test (`NetworkPredictionOptions`, `ComponentUpdatesEnabled`), and nothing marked "opt-in" is ever applied unless you explicitly ask for it.
 
 ---
 
+## Screenshots
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/01-menu-preview.png" width="49%" />
+  <img src="https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/05-html-preview.png" width="49%" />
+</p>
+
+More screenshots (dry-run diff, integrity check, full HTML report) are in the [`screenshots/`](https://github.com/NephVx2/Brave-Debloat/tree/main/screenshots) folder.
+
+---
+
 ## Table of contents
 
+- [Screenshots](#screenshots)
 - [Overview](#overview)
 - [How it works](#how-it-works)
 - [Reports and console output](#reports-and-console-output)
@@ -28,7 +40,7 @@ Interactive PowerShell menu that applies a curated set of Brave browser policies
 
 ## Overview
 
-`Brave-Debloat_v3.1.ps1` writes machine-wide Brave policies to the registry — the same mechanism enterprise IT departments use to manage Brave via Group Policy, applied here to a single machine through a controlled, reversible script instead of a domain controller.
+`Brave-Debloat.ps1` writes machine-wide Brave policies to the registry — the same mechanism enterprise IT departments use to manage Brave via Group Policy, applied here to a single machine through a controlled, reversible script instead of a domain controller.
 
 It touches **one registry key and its subtree**: `HKLM\SOFTWARE\Policies\BraveSoftware\Brave`. It does not modify Brave's user profile settings directly, does not touch any other browser, and does not install or remove anything.
 
@@ -48,12 +60,19 @@ Like `Block-Telemetry`, this is a **menu-driven** tool — applying, updating, a
 
 5. An **integrity check** (menu option `[9]`) re-reads every policy this script is supposed to manage and flags any that drifted from its target — useful after a Brave update, which occasionally resets or ignores specific policies.
 
+   ![Policy integrity check](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/03-policy-integrity.png)
+
 ---
 
 ## Reports and console output
 
 - The **HTML report** (menu option `[7]`, and generated automatically after every apply/update/dry-run) uses the same dark-themed visual style as the rest of the suite: gradient header banner, Windows logo, and a shared color palette for status badges (applied / unchanged / failed). It **opens automatically** in your default browser right after being generated, in addition to being written to disk.
+
+  ![HTML report generation](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/04-html-report.png)
+
 - The **dry-run diff** (menu option `[3]`) is rendered as individual timestamped, color-coded lines — icon, category, policy name, old → new value — instead of a fixed-width table. This means a single long value (e.g. `WebRtcIPHandling`'s `default_public_interface_only`) never distorts the alignment of every other row.
+
+  ![Dry-run diff preview](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/02-dryrun-preview.png)
 
 ---
 
@@ -68,19 +87,19 @@ Disables Brave-proprietary features not used in this configuration: Rewards, Wal
 </details>
 
 <details>
-<summary><strong>Telemetrie</strong> — 13 policies</summary>
+<summary><strong>Telemetry</strong> — 13 policies</summary>
 
 Brave's own P3A (Privacy-Preserving Product Analytics), the daily stats ping (this does **not** block `laptop-updates.brave.com`, which stays reachable for binary updates — only the ping itself is cut), Web Discovery Project, generic Chromium crash/usage metrics reporting, error-page phone-home to Google, payment-method detection by sites, real-time search-suggestion keystroke sending, feedback/survey prompts, URL-keyed "anonymized" data collection, Safe Browsing extended reporting, WebRTC event log collection to Google, and cloud reporting (a no-op on a non-enrolled personal machine, kept for defense-in-depth consistency).
 </details>
 
 <details>
-<summary><strong>Reseau</strong> (Network) — 5 policies (7 with DNS-over-HTTPS opted in)</summary>
+<summary><strong>Network</strong> (Network) — 5 policies (7 with DNS-over-HTTPS opted in)</summary>
 
 `NetworkPredictionOptions` set to **2** — this is the one setting in the whole catalog with a documented regression trap: 0 or 1 both mean prediction is *active*, only 2 truly disables DNS prefetch/preconnect. Also: prevents Brave from running in the background after the window is closed, blocks WebRTC from leaking a local/private IP even behind a VPN or proxy, forces the OS DNS resolver instead of Chromium's internal one (kept consistent with a system-wide DNS filter like NextDNS), and disables WPAD proxy auto-detection on every network change.
 </details>
 
 <details>
-<summary><strong>Securite</strong> (Security) — 8 policies</summary>
+<summary><strong>Security</strong> (Security) — 8 policies</summary>
 
 `ComponentUpdatesEnabled` is explicitly kept **enabled** — this isn't just the Brave binary, it also covers Widevine, Safe Browsing lists, and the root certificate store, so this policy is never touched. Also: forces HTTPS upgrades when available, configurable Safe Browsing level (see below), blocks external tools from attaching to Brave's remote debugging port, blocks HTTP Basic Auth sent in the clear, prevents automatic NTLM/Kerberos authentication from leaking Windows credentials in private browsing, blocks cross-origin authentication-prompt spoofing, and disables Signed HTTP Exchanges (which can mask a page's real origin).
 </details>
@@ -146,40 +165,40 @@ Forces Brave's own DoH resolver to a specific endpoint you provide. Absent by de
 
 ## First run (step by step)
 
-1. Copy `Brave-Debloat_v3.1.ps1` to the target machine.
+1. Copy `Brave-Debloat.ps1` to the target machine.
 
 2. Open a PowerShell terminal (no need to run it as admin manually — the script self-elevates, except for the read-only checks below).
 
 3. Run the self-test first — read-only, no admin rights required:
 
    ```powershell
-   .\Brave-Debloat_v3.1.ps1 -SelfTest
+   .\Brave-Debloat.ps1 -SelfTest
    ```
 
-   Runs 19 assertions: policy list integrity (no duplicates, correct value types), the two regression guards (`NetworkPredictionOptions` = 2, `ComponentUpdatesEnabled` = 1), Lockdown/DoH stay absent unless explicitly requested, DevTools stays enabled even under Lockdown, translation/spell-check are confirmed absent from the script entirely, and several internal functions run without throwing. Exit code `0` = all passed, `1` = at least one failure.
+   Runs 21 assertions: policy list integrity (no duplicates, correct value types), the two regression guards (`NetworkPredictionOptions` = 2, `ComponentUpdatesEnabled` = 1), Lockdown/DoH stay absent unless explicitly requested, DevTools stays enabled even under Lockdown, translation/spell-check are confirmed absent from the script entirely, and several internal functions run without throwing. Exit code `0` = all passed, `1` = at least one failure.
 
 4. *(Optional)* Inspect the full policy list without touching the registry:
 
    ```powershell
-   .\Brave-Debloat_v3.1.ps1 -DebugDefs
+   .\Brave-Debloat.ps1 -DebugDefs
    ```
 
 5. Launch the script normally (accept the UAC prompt):
 
    ```powershell
-   .\Brave-Debloat_v3.1.ps1
+   .\Brave-Debloat.ps1
    ```
 
 6. From the menu, preview what would change **without writing anything**:
 
    ```
-   [3] Simuler sans modifier (DryRun)
+   [3] Simulate without changing (DryRun)
    ```
 
 7. Apply the policies for real:
 
    ```
-   [1] Appliquer les modifications
+   [1] Apply changes
    ```
 
    This backs up the current registry state, writes the target values, and records the result for the reports.
@@ -214,9 +233,9 @@ Forces Brave's own DoH resolver to a specific endpoint you provide. Absent by de
 
 | Parameter | Description |
 |---|---|
-| `-SelfTest` | Runs the 19-assertion internal test suite and exits. No admin rights required, registry never touched. |
+| `-SelfTest` | Runs the 21-assertion internal test suite and exits. No admin rights required, registry never touched. |
 | `-DebugDefs` | Prints the full numbered policy list (name + category) as currently defined, plus two named-policy presence checks, and exits. No admin rights required, registry never touched. |
-| `-Category <name(s)>` | Restrict an action to one or more categories (e.g. `-Category Telemetrie,Reseau`) instead of the full set. |
+| `-Category <name(s)>` | Restrict an action to one or more categories (e.g. `-Category Telemetry,Network`) instead of the full set. |
 | `-IncludeLockdown` | Adds the 5 opt-in Lockdown policies to whatever action you run (apply/update/dry-run). See [Opt-in only](#opt-in-only-lockdown-and-dns-over-https). |
 | `-SafeBrowsingLevel <Off\|Standard\|Enhanced>` | Sets Brave's Safe Browsing level. Default `Standard` (local lists, no real-time sharing with Google). `Enhanced` gives better detection but sends URLs and page samples to Google continuously. `Off` is available but not recommended. |
 | `-DnsOverHttpsTemplate <url>` | Supplying this enables the 2 opt-in DoH policies, pointed at your URL. See [Opt-in only](#opt-in-only-lockdown-and-dns-over-https). |
@@ -224,11 +243,11 @@ Forces Brave's own DoH resolver to a specific endpoint you provide. Absent by de
 **Examples:**
 
 ```powershell
-.\Brave-Debloat_v3.1.ps1 -SelfTest
-.\Brave-Debloat_v3.1.ps1 -Category Telemetrie,Reseau
-.\Brave-Debloat_v3.1.ps1 -IncludeLockdown
-.\Brave-Debloat_v3.1.ps1 -SafeBrowsingLevel Enhanced
-.\Brave-Debloat_v3.1.ps1 -DnsOverHttpsTemplate "https://dns.nextdns.io/xxxxxx"
+.\Brave-Debloat.ps1 -SelfTest
+.\Brave-Debloat.ps1 -Category Telemetry,Network
+.\Brave-Debloat.ps1 -IncludeLockdown
+.\Brave-Debloat.ps1 -SafeBrowsingLevel Enhanced
+.\Brave-Debloat.ps1 -DnsOverHttpsTemplate "https://dns.nextdns.io/xxxxxx"
 ```
 
 ---
@@ -237,10 +256,10 @@ Forces Brave's own DoH resolver to a specific endpoint you provide. Absent by de
 
 | File / folder | Content |
 |---|---|
-| `%USERPROFILE%\Desktop\Registry_Backups\BraveDebloat\*.reg` | Full `reg export` of the policy key, taken before every real write (rotated automatically, last 10 kept) |
-| `%USERPROFILE%\Desktop\Brave-Debloat_Log.txt` | Plain-text action log (append-only) |
-| `%USERPROFILE%\Desktop\Rapports_Maintenance\BraveDebloat\_dernier_etat.json` | Snapshot of the last applied state, used by the integrity check |
-| `%USERPROFILE%\Desktop\Rapports_Maintenance\BraveDebloat\*.csv` / `*.json` / `*.html` | Reports generated via menu option `[7]` |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\Registry-Backups\*.reg` | Full `reg export` of the policy key, taken before every real write (rotated automatically, last 10 kept) |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\Brave-Debloat_Log.txt` | Plain-text action log (append-only) |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\_last_state.json` | Snapshot of the last applied state, used by the integrity check |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\*.csv` / `*.json` / `*.html` | Reports generated via menu option `[7]` |
 | Export file *(on demand, menu option `[10]`)* | Plain-text list of the currently active policies |
 
 `-SelfTest` and `-DebugDefs` write **no** files and touch **no** registry keys.
@@ -286,7 +305,7 @@ An HKCU-level policy for the same setting, or a `Recommended` subkey under the m
 <details>
 <summary><strong>-SelfTest reports a FAIL</strong></summary>
 
-All 19 assertions are internal consistency checks on the policy definitions and helper functions — a FAIL points to a specific broken invariant (e.g. `NetworkPredictionOptions` no longer targeting 2, a duplicate policy name, Lockdown policies present without `-IncludeLockdown`). Read the failing assertion's name for the specific issue.
+All 21 assertions are internal consistency checks on the policy definitions and helper functions — a FAIL points to a specific broken invariant (e.g. `NetworkPredictionOptions` no longer targeting 2, a duplicate policy name, Lockdown policies present without `-IncludeLockdown`). Read the failing assertion's name for the specific issue.
 </details>
 
 <details>
