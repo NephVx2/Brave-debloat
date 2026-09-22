@@ -169,7 +169,27 @@ Forces Brave's own DoH resolver to a specific endpoint you provide. Absent by de
 
 2. Open a PowerShell terminal (no need to run it as admin manually — the script self-elevates, except for the read-only checks below).
 
-3. Run the self-test first — read-only, no admin rights required:
+   Then go to the folder that contains the script (adjust the path; keep the quotes if it contains spaces):
+
+   ```powershell
+   cd "$HOME\Downloads"
+   ```
+
+3. **Unblock the script** if you downloaded it from the Internet. Windows flags downloaded files, and PowerShell's execution policy (`RemoteSigned`, for example) refuses to run a flagged script. From the script's folder:
+
+   ```powershell
+   Unblock-File .\Brave-Debloat.ps1
+   ```
+
+   If PowerShell says instead that running scripts is disabled on this system (the Windows default policy is `Restricted`), allow scripts for the current account first (the change applies to this account only, not to the whole machine):
+
+   ```powershell
+   Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+   ```
+
+   Still blocked? See the [step-by-step guide](https://github.com/NephVx2/Script-blocked-Look-at-this).
+
+4. Run the self-test first — read-only, no admin rights required:
 
    ```powershell
    .\Brave-Debloat.ps1 -SelfTest
@@ -177,25 +197,25 @@ Forces Brave's own DoH resolver to a specific endpoint you provide. Absent by de
 
    Runs 21 assertions: policy list integrity (no duplicates, correct value types), the two regression guards (`NetworkPredictionOptions` = 2, `ComponentUpdatesEnabled` = 1), Lockdown/DoH stay absent unless explicitly requested, DevTools stays enabled even under Lockdown, translation/spell-check are confirmed absent from the script entirely, and several internal functions run without throwing. Exit code `0` = all passed, `1` = at least one failure.
 
-4. *(Optional)* Inspect the full policy list without touching the registry:
+5. *(Optional)* Inspect the full policy list without touching the registry:
 
    ```powershell
    .\Brave-Debloat.ps1 -DebugDefs
    ```
 
-5. Launch the script normally (accept the UAC prompt):
+6. Launch the script normally (accept the UAC prompt):
 
    ```powershell
    .\Brave-Debloat.ps1
    ```
 
-6. From the menu, preview what would change **without writing anything**:
+7. From the menu, preview what would change **without writing anything**:
 
    ```
    [3] Simulate without changing (DryRun)
    ```
 
-7. Apply the policies for real:
+8. Apply the policies for real:
 
    ```
    [1] Apply changes
@@ -203,11 +223,11 @@ Forces Brave's own DoH resolver to a specific endpoint you provide. Absent by de
 
    This backs up the current registry state, writes the target values, and records the result for the reports.
 
-8. Restart Brave for the new policies to take effect (Chromium-based browsers read most policies at startup). Confirm in the browser via `brave://policy/`.
+9. Restart Brave for the new policies to take effect (Chromium-based browsers read most policies at startup). Confirm in the browser via `brave://policy/`.
 
-9. Check integrity any time afterward with option `[9]` — useful after a Brave update, which occasionally resets specific policies back to their defaults.
+10. Check integrity any time afterward with option `[9]` — useful after a Brave update, which occasionally resets specific policies back to their defaults.
 
-10. To undo everything, use option `[4]` (Restore) — re-imports the backup taken before the last change.
+11. To undo everything, use option `[4]` (Restore) — re-imports the backup taken before the last change.
 
 ---
 
