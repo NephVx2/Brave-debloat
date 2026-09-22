@@ -171,7 +171,27 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 
 2. Ouvrir un terminal PowerShell (pas besoin de le lancer en admin a la main — le script s'auto-eleve, sauf pour les verifications en lecture seule ci-dessous).
 
-3. Lancer d'abord le self-test — lecture seule, aucun droit admin requis :
+   Puis se placer dans le dossier qui contient le script (adapter le chemin ; garder les guillemets s'il contient des espaces) :
+
+   ```powershell
+   cd "$HOME\Downloads"
+   ```
+
+3. **Debloquer le script** s'il a ete telecharge depuis Internet. Windows marque les fichiers telecharges, et la politique d'execution de PowerShell (`RemoteSigned`, par exemple) refuse de lancer un script marque. Depuis le dossier du script :
+
+   ```powershell
+   Unblock-File .\Brave-Debloat.ps1
+   ```
+
+   Si PowerShell indique plutot que l'execution de scripts est desactivee sur ce systeme (la politique par defaut de Windows est `Restricted`), autoriser d'abord les scripts pour le compte courant (la modification ne s'applique qu'a ce compte, pas a toute la machine) :
+
+   ```powershell
+   Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+   ```
+
+   Toujours bloque ? Voir le [guide pas a pas](https://github.com/NephVx2/Script-blocked-Look-at-this/blob/main/README_POWERSHELL_FRENCH.md).
+
+4. Lancer d'abord le self-test — lecture seule, aucun droit admin requis :
 
    ```powershell
    .\Brave-Debloat.ps1 -SelfTest
@@ -179,25 +199,25 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 
    Execute 21 assertions : integrite de la liste de policies (pas de doublons, types de valeurs corrects), les deux garde-fous de regression (`NetworkPredictionOptions` = 2, `ComponentUpdatesEnabled` = 1), Lockdown/DoH restent absents sans demande explicite, les DevTools restent actifs meme sous Lockdown, traduction/correcteur orthographique confirmes absents de tout le script, et plusieurs fonctions internes s'executent sans lever d'exception. Code de sortie `0` = tout passe, `1` = au moins un echec.
 
-4. *(Optionnel)* Inspecter la liste complete des policies sans toucher au registre :
+5. *(Optionnel)* Inspecter la liste complete des policies sans toucher au registre :
 
    ```powershell
    .\Brave-Debloat.ps1 -DebugDefs
    ```
 
-5. Lancer le script normalement (accepter le prompt UAC) :
+6. Lancer le script normalement (accepter le prompt UAC) :
 
    ```powershell
    .\Brave-Debloat.ps1
    ```
 
-6. Depuis le menu, previsualiser ce qui changerait **sans rien ecrire** :
+7. Depuis le menu, previsualiser ce qui changerait **sans rien ecrire** :
 
    ```
    [3] Simulate without changing (DryRun)
    ```
 
-7. Appliquer les policies pour de vrai :
+8. Appliquer les policies pour de vrai :
 
    ```
    [1] Apply changes
@@ -205,11 +225,11 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 
    Sauvegarde l'etat actuel du registre, ecrit les valeurs cibles, et enregistre le resultat pour les rapports.
 
-8. Redemarrer Brave pour que les nouvelles policies prennent effet (les navigateurs bases sur Chromium lisent la plupart des policies au demarrage). Confirmer dans le navigateur via `brave://policy/`.
+9. Redemarrer Brave pour que les nouvelles policies prennent effet (les navigateurs bases sur Chromium lisent la plupart des policies au demarrage). Confirmer dans le navigateur via `brave://policy/`.
 
-9. Verifier l'integrite a tout moment ensuite avec l'option `[9]` — utile apres une mise a jour de Brave, qui reinitialise occasionnellement certaines policies a leurs valeurs par defaut.
+10. Verifier l'integrite a tout moment ensuite avec l'option `[9]` — utile apres une mise a jour de Brave, qui reinitialise occasionnellement certaines policies a leurs valeurs par defaut.
 
-10. Pour tout annuler, utiliser l'option `[4]` (Restaurer) — re-importe la sauvegarde prise avant la derniere modification.
+11. Pour tout annuler, utiliser l'option `[4]` (Restaurer) — re-importe la sauvegarde prise avant la derniere modification.
 
 ---
 
