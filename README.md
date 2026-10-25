@@ -11,8 +11,8 @@ Interactive PowerShell menu that applies a curated set of Brave browser policies
 ## Screenshots
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/01-menu-preview.png" width="49%" />
-  <img src="https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/05-html-preview.png" width="49%" />
+  <img src="https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/01-menu-preview.png?v=3.3.0" width="49%" />
+  <img src="https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/05-html-preview.png?v=3.3.0" width="49%" />
 </p>
 
 More screenshots (dry-run diff, integrity check, full HTML report) are in the [`screenshots/`](https://github.com/NephVx2/Brave-Debloat/tree/main/screenshots) folder.
@@ -60,19 +60,21 @@ Like `Block-Telemetry`, this is a **menu-driven** tool — applying, updating, a
 
 5. An **integrity check** (menu option `[9]`) re-reads every policy this script is supposed to manage and flags any that drifted from its target — useful after a Brave update, which occasionally resets or ignores specific policies.
 
-   ![Policy integrity check](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/03-policy-integrity.png)
+   ![Policy integrity check](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/03-policy-integrity.png?v=3.3.0)
 
 ---
 
 ## Reports and console output
 
+- The **console interface** uses a consistent visual language: framed banners, `▸` section titles, and status icons — `✔` success, `✘` error, `▲` warning or pending change, `●` info, `○` skipped or unchanged, `◆` simulation. Apply, Simulation and Restore each end with a framed result box. For the best rendering, use **Windows Terminal** (see [Prerequisites](#prerequisites)).
+
 - The **HTML report** (menu option `[7]`, and generated automatically after every apply/update/dry-run) uses the same dark-themed visual style as the rest of the suite: gradient header banner, Windows logo, and a shared color palette for status badges (applied / unchanged / failed). It **opens automatically** in your default browser right after being generated, in addition to being written to disk.
 
-  ![HTML report generation](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/04-html-report.png)
+  ![HTML report generation](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/04-html-report.png?v=3.3.0)
 
 - The **dry-run diff** (menu option `[3]`) is rendered as individual timestamped, color-coded lines — icon, category, policy name, old → new value — instead of a fixed-width table. This means a single long value (e.g. `WebRtcIPHandling`'s `default_public_interface_only`) never distorts the alignment of every other row.
 
-  ![Dry-run diff preview](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/02-dryrun-preview.png)
+  ![Dry-run diff preview](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/02-dryrun-preview.png?v=3.3.0)
 
 ---
 
@@ -158,6 +160,7 @@ Forces Brave's own DoH resolver to a specific endpoint you provide. Absent by de
 
 - Windows 10 or 11 with Brave Browser installed.
 - PowerShell 5.1 (built into Windows) or PowerShell 7+.
+- Recommended: **Windows Terminal** (default on Windows 11) for the best rendering of the console interface (box-drawing characters and status icons). The classic console window also works, but some icons may depend on the selected font.
 - Administrator rights — required because the target is `HKLM` (machine-wide), not `HKCU`. The script self-elevates on launch, except for `-SelfTest` and `-DebugDefs`, which run read-only and do **not** require elevation.
 - If the script is digitally signed (recommended in environments using `-ExecutionPolicy AllSigned`/`RemoteSigned`): the signing certificate must be trusted on the target machine.
 
@@ -247,6 +250,8 @@ Forces Brave's own DoH resolver to a specific endpoint you provide. Absent by de
 | `[10]` | Export the currently active policy list to a `.txt` file |
 | `[Q]` | Quit |
 
+The menu is organised in three groups — **Policies** (`[1]`–`[4]`), **Backups & DNS** (`[5]`–`[6]`) and **Reports & diagnostics** (`[7]`–`[10]`) — under a **Status** panel that shows at a glance how many policies are applied (e.g. `42/53`), the last action and when it ran, and a compact integrity indicator (the same check as option `[9]`).
+
 ---
 
 ## Command-line parameters
@@ -279,8 +284,8 @@ Forces Brave's own DoH resolver to a specific endpoint you provide. Absent by de
 | `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\Registry-Backups\*.reg` | Full `reg export` of the policy key, taken before every real write (rotated automatically, last 10 kept) |
 | `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\Brave-Debloat_Log.txt` | Plain-text action log (append-only) |
 | `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\_last_state.json` | Snapshot of the last applied state, used by the integrity check |
-| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\*.csv` / `*.json` / `*.html` | Reports generated via menu option `[7]` |
-| Export file *(on demand, menu option `[10]`)* | Plain-text list of the currently active policies |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\*.csv` / `*.json` / `*.html` | Reports generated after every apply / update / dry-run, and via menu option `[7]` |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\Brave-Debloat_Export_<timestamp>.txt` *(on demand, menu option `[10]`)* | Plain-text list of the currently active policies |
 
 `-SelfTest` and `-DebugDefs` write **no** files and touch **no** registry keys.
 
@@ -320,6 +325,12 @@ Some Brave updates reset or reintroduce default values for specific policies. Re
 <summary><strong>Conflict check (option [8]) flags an HKCU policy or a Recommended subkey</strong></summary>
 
 An HKCU-level policy for the same setting, or a `Recommended` subkey under the managed policy path, can override or shadow what this script sets at `HKLM`. Investigate what created it (another tool, a leftover from manual testing, or actual domain/MDM management) before removing it.
+</details>
+
+<details>
+<summary><strong>Some icons or box characters show up as squares or look misaligned</strong></summary>
+
+The console interface uses Unicode characters (box-drawing lines and status icons such as `✔ ✘ ▲ ● ○ ◆`). **Windows Terminal** displays them correctly out of the box. In the classic console window, the selected font may lack some of these glyphs — switch to a font such as **Cascadia Mono** or **Consolas**, or run the script from Windows Terminal. This is purely cosmetic and never affects what the script does.
 </details>
 
 <details>
