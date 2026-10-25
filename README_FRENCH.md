@@ -2,174 +2,177 @@
 
 🇬🇧 [English version](README.md)
 
-Menu PowerShell interactif qui applique un jeu de policies Brave soigneusement choisies via le registre Windows (`HKLM\SOFTWARE\Policies\BraveSoftware\Brave`) — debloating, telemetrie, reseau et durcissement de securite — avec sauvegardes `.reg` automatiques, previsualisation en mode simulation, restauration en un clic, et verificateur d'integrite. Meme architecture que [Block-Telemetry](https://github.com/NephVx2/Block-Telemetry).
+Menu PowerShell interactif qui applique un jeu de policies Brave soigneusement choisies via le registre Windows (`HKLM\SOFTWARE\Policies\BraveSoftware\Brave`) — debloating, télémétrie, réseau et durcissement de sécurité — avec sauvegardes `.reg` automatiques, prévisualisation en mode simulation, restauration en un clic, et vérificateur d'intégrité. Même architecture que [Block-Telemetry](https://github.com/NephVx2/Block-Telemetry).
 
-> Chaque valeur est justifiee. Chaque policy porte une justification en langage clair directement dans le script, deux pieges de regression Chromium connus sont verrouilles par le self-test (`NetworkPredictionOptions`, `ComponentUpdatesEnabled`), et rien de marque "opt-in" n'est jamais applique sans que vous ne le demandiez explicitement.
+> Chaque valeur est justifiée. Chaque policy porte une justification en langage clair directement dans le script, deux pièges de régression Chromium connus sont verrouillés par le self-test (`NetworkPredictionOptions`, `ComponentUpdatesEnabled`), et rien de marqué "opt-in" n'est jamais appliqué sans que vous ne le demandiez explicitement.
 
 ---
 
-## Captures d'ecran
+## Captures d'écran
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/01-menu-preview.png" width="49%" />
-  <img src="https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/05-html-preview.png" width="49%" />
+  <img src="https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/01-menu-preview.png?v=3.3.0" width="49%" />
+  <img src="https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/05-html-preview.png?v=3.3.0" width="49%" />
 </p>
 
-D'autres captures (diff en mode simulation, verification d'integrite, rapport HTML complet) sont dans le dossier [`screenshots/`](https://github.com/NephVx2/Brave-Debloat/tree/main/screenshots).
+D'autres captures (diff en mode simulation, vérification d'intégrité, rapport HTML complet) sont dans le dossier [`screenshots/`](https://github.com/NephVx2/Brave-Debloat/tree/main/screenshots).
 
-> **Note :** l'interface (console + rapport HTML) est entierement en anglais depuis la v3.2.0. Ce README reste en francais pour les explications, mais les captures et le texte cite ci-dessous montrent l'ecran reel tel qu'il s'affiche.
+> **Note :** l'interface (console + rapport HTML) est entièrement en anglais depuis la v3.2.0. Ce README reste en français pour les explications, mais les captures et le texte cite ci-dessous montrent l'écran réel tel qu'il s'affiche.
 
 ---
 
 ## Sommaire
 
-- [Captures d'ecran](#captures-decran)
-- [Presentation](#presentation)
+- [Captures d'écran](#captures-décran)
+- [Présentation](#présentation)
 - [Fonctionnement](#fonctionnement)
 - [Rapports et affichage console](#rapports-et-affichage-console)
-- [Ce qui est configure](#ce-qui-est-configure)
+- [Ce qui est configuré](#ce-qui-est-configuré)
 - [Opt-in uniquement : Lockdown et DNS-over-HTTPS](#opt-in-uniquement--lockdown-et-dns-over-https)
-- [Garanties de securite](#garanties-de-securite)
-- [Prerequis](#prerequis)
-- [Premier lancement](#premier-lancement-pas-a-pas)
-- [Reference du menu](#reference-du-menu)
-- [Parametres en ligne de commande](#parametres-en-ligne-de-commande)
-- [Fichiers ecrits par le script](#fichiers-ecrits-par-le-script)
-- [Deploiement multi-machines](#deploiement-multi-machines)
-- [Depannage](#depannage)
+- [Garanties de sécurité](#garanties-de-sécurité)
+- [Prérequis](#prérequis)
+- [Premier lancement](#premier-lancement-pas-à-pas)
+- [Référence du menu](#référence-du-menu)
+- [Paramètres en ligne de commande](#paramètres-en-ligne-de-commande)
+- [Fichiers écrits par le script](#fichiers-écrits-par-le-script)
+- [Déploiement multi-machines](#déploiement-multi-machines)
+- [Dépannage](#dépannage)
 
 ---
 
-## Presentation
+## Présentation
 
-`Brave-Debloat.ps1` ecrit des policies Brave a l'echelle machine dans le registre — le meme mecanisme que les services informatiques d'entreprise utilisent pour gerer Brave via Group Policy, applique ici a une seule machine via un script controle et reversible plutot qu'un controleur de domaine.
+`Brave-Debloat.ps1` écrit des policies Brave à l'échelle machine dans le registre — le même mécanisme que les services informatiques d'entreprise utilisent pour gérer Brave via Group Policy, appliqué ici à une seule machine via un script contrôle et réversible plutôt qu'un contrôleur de domaine.
 
-Il touche **une seule cle de registre et son arborescence** : `HKLM\SOFTWARE\Policies\BraveSoftware\Brave`. Il ne modifie pas directement les parametres du profil utilisateur Brave, ne touche a aucun autre navigateur, et n'installe ni ne desinstalle rien.
+Il touche **une seule clé de registre et son arborescence** : `HKLM\SOFTWARE\Policies\BraveSoftware\Brave`. Il ne modifie pas directement les paramètres du profil utilisateur Brave, ne touche à aucun autre navigateur, et n'installe ni ne désinstalle rien.
 
-Comme `Block-Telemetry`, c'est un outil **pilote par menu** — appliquer, mettre a jour et restaurer des policies sont des modifications de configuration durables, pas des taches de maintenance ponctuelles, donc le script garde un humain dans la boucle plutot que d'exposer un simple parametre CLI "fais-le et c'est tout."
+Comme `Block-Telemetry`, c'est un outil **piloté par menu** — appliquer, mettre à jour et restaurer des policies sont des modifications de configuration durables, pas des tâches de maintenance ponctuelles, donc le script garde un humain dans la boucle plutôt que d'exposer un simple paramètre CLI "fais-le et c'est tout."
 
 ---
 
 ## Fonctionnement
 
-1. Chaque policy geree par ce script est definie une seule fois, a un seul endroit (`Get-BravePolicyDefinitions`), chacune avec une `Category`, un `Type` (DWord ou String), une `TargetValue`, et une **justification** expliquant pourquoi cette valeur precise a ete choisie — pas juste "desactiver ceci."
+1. Chaque policy gérée par ce script est définie une seule fois, à un seul endroit (`Get-BravePolicyDefinitions`), chacune avec une `Category`, un `Type` (DWord ou String), une `TargetValue`, et une **justification** expliquant pourquoi cette valeur précise a été choisie — pas juste "désactiver ceci."
 
-2. Avant **toute** ecriture dans le registre, un export `.reg` complet de la cle de policies actuelle est effectue (voir [Fichiers ecrits par le script](#fichiers-ecrits-par-le-script)).
+2. Avant **toute** écriture dans le registre, un export `.reg` complet de la clé de policies actuelle est effectué (voir [Fichiers écrits par le script](#fichiers-écrits-par-le-script)).
 
-3. L'application compare la valeur registre actuelle de chaque policy a sa cible : les valeurs deja correctes sont laissees telles quelles, les manquantes ou incorrectes sont ecrites, et le resultat est trace par policy (`Add-Result`) pour les rapports CSV/JSON/HTML.
+3. L'application compare la valeur registre actuelle de chaque policy à sa cible : les valeurs déjà correctes sont laissées telles quelles, les manquantes ou incorrectes sont écrites, et le résultat est tracé par policy (`Add-Result`) pour les rapports CSV/JSON/HTML.
 
-4. La restauration re-importe la derniere sauvegarde, ramenant la cle de registre exactement a son etat avant que ce script n'y touche.
+4. La restauration re-importe la dernière sauvegarde, ramenant la clé de registre exactement à son état avant que ce script n'y touche.
 
-5. Une **verification d'integrite** (option de menu `[9]`) relit chaque policy que ce script est cense gerer et signale toute derive par rapport a sa cible — utile apres une mise a jour de Brave, qui reinitialise ou ignore occasionnellement certaines policies.
+5. Une **vérification d'intégrité** (option de menu `[9]`) relit chaque policy que ce script est censé gérer et signale toute dérive par rapport à sa cible — utile après une mise à jour de Brave, qui réinitialise ou ignore occasionnellement certaines policies.
 
-   ![Verification d'integrite des policies](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/03-policy-integrity.png)
+   ![Vérification d'intégrité des policies](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/03-policy-integrity.png?v=3.3.0)
 
 ---
 
 ## Rapports et affichage console
 
-- Le **rapport HTML** (option de menu `[7]`, et genere automatiquement apres chaque application/mise a jour/simulation) reprend le meme style visuel sombre que le reste de la suite : bandeau d'en-tete a degrade, logo Windows, et une palette de couleurs partagee pour les badges de statut (applique / inchange / echec). Il s'**ouvre automatiquement** dans le navigateur par defaut juste apres sa generation, en plus d'etre ecrit sur le disque.
+- L'**interface console** utilise un langage visuel homogène : bandeaux encadrés, titres de section `▸`, et icônes de statut — `✔` succès, `✘` erreur, `▲` avertissement ou changement en attente, `●` info, `○` ignoré ou inchangé, `◆` simulation. Apply, la simulation et Restore se terminent chacun par une boîte de résultat encadrée. Pour le meilleur rendu, utiliser **Windows Terminal** (voir [Prérequis](#prérequis)).
 
-  ![Generation du rapport HTML](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/04-html-report.png)
+- Le **rapport HTML** (option de menu `[7]`, et généré automatiquement après chaque application/mise à jour/simulation) reprend le même style visuel sombre que le reste de la suite : bandeau d'en-tête à dégradé, logo Windows, et une palette de couleurs partagée pour les badges de statut (appliqué / inchangé / échec). Il s'**ouvre automatiquement** dans le navigateur par défaut juste après sa génération, en plus d'être écrit sur le disque.
 
-- Le **diff en mode simulation** (option de menu `[3]`) est affiche ligne par ligne, horodate et colore — icone, categorie, nom de la policy, ancienne → nouvelle valeur — plutot que dans un tableau a largeur fixe. Ainsi, une seule valeur longue (par ex. `default_public_interface_only` pour `WebRtcIPHandling`) ne deforme plus jamais l'alignement des autres lignes.
+  ![Génération du rapport HTML](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/04-html-report.png?v=3.3.0)
 
-  ![Apercu du diff en mode simulation](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/02-dryrun-preview.png)
+- Le **diff en mode simulation** (option de menu `[3]`) est affiche ligne par ligne, horodaté et coloré — icône, catégorie, nom de la policy, ancienne → nouvelle valeur — plutôt que dans un tableau à largeur fixe. Ainsi, une seule valeur longue (par ex. `default_public_interface_only` pour `WebRtcIPHandling`) ne déforme plus jamais l'alignement des autres lignes.
+
+  ![Aperçu du diff en mode simulation](https://raw.githubusercontent.com/NephVx2/Brave-Debloat/main/screenshots/02-dryrun-preview.png?v=3.3.0)
 
 ---
 
-## Ce qui est configure
+## Ce qui est configuré
 
-**53 policies appliquees par defaut**, reparties en 6 categories :
+**53 policies appliquées par défaut**, réparties en 6 catégories :
 
 <details>
 <summary><strong>Bloat</strong> — 21 policies</summary>
 
-Desactive les fonctionnalites propres a Brave non utilisees dans cette configuration : Rewards, Wallet, VPN, News, Talk, Speedreader, Wayback Machine, Playlist, Sync, la fenetre Tor integree, Leo AI. Ferme aussi la surface UI/IA Chromium sous-jacente que Brave n'utilise pas nativement mais expose quand meme : onglets et bannieres promotionnels, cartes et bandeau d'annonce de la page nouvel onglet, l'icone promo du Web Store (n'empeche pas d'installer des extensions), le bouton "Labs" (fonctionnalites experimentales), et l'integration Gemini, "Aide a l'ecriture" et comparaison d'onglets IA de Chromium.
+Désactive les fonctionnalités propres à Brave non utilisées dans cette configuration : Rewards, Wallet, VPN, News, Talk, Speedreader, Wayback Machine, Playlist, Sync, la fenêtre Tor intégrée, Leo AI. Ferme aussi la surface UI/IA Chromium sous-jacente que Brave n'utilise pas nativement mais exposé quand même : onglets et bannières promotionnels, cartes et bandeau d'annonce de la page nouvel onglet, l'icône promo du Web Store (n'empêche pas d'installer des extensions), le bouton "Labs" (fonctionnalités expérimentales), et l'intégration Gemini, "Aide à l'écriture" et comparaison d'onglets IA de Chromium.
 </details>
 
 <details>
 <summary><strong>Telemetry</strong> — 13 policies</summary>
 
-Le P3A propre a Brave (Privacy-Preserving Product Analytics), le ping de stats quotidien (ceci ne bloque **pas** `laptop-updates.brave.com`, qui reste joignable pour les mises a jour binaires — seul le ping lui-meme est coupe), Web Discovery Project, le reporting generique de crash/usage Chromium, le contact avec Google sur les pages d'erreur, la detection de moyens de paiement par les sites, l'envoi en temps reel de la frappe au moteur de suggestions, les sondages de feedback, la collecte de donnees "anonymisees" liees a l'URL, le rapport etendu Safe Browsing, la collecte de logs WebRTC vers Google, et le cloud reporting (sans effet sur un poste perso non enrole, conserve par coherence de defense en profondeur).
+Le P3A propre à Brave (Privacy-Preserving Product Analytics), le ping de stats quotidien (ceci ne bloque **pas** `laptop-updates.brave.com`, qui reste joignable pour les mises à jour binaires — seul le ping lui-même est coupé), Web Discovery Project, le reporting générique de crash/usage Chromium, le contact avec Google sur les pages d'erreur, la détection de moyens de paiement par les sites, l'envoi en temps réel de la frappe au moteur de suggestions, les sondages de feedback, la collecte de données "anonymisées" liées à l'URL, le rapport étendu Safe Browsing, la collecte de logs WebRTC vers Google, et le cloud reporting (sans effet sur un poste perso non enrôlé, conservé par cohérence de défense en profondeur).
 </details>
 
 <details>
-<summary><strong>Network</strong> — 5 policies (7 avec DNS-over-HTTPS active)</summary>
+<summary><strong>Network</strong> — 5 policies (7 avec DNS-over-HTTPS activé)</summary>
 
-`NetworkPredictionOptions` regle sur **2** — c'est le seul reglage de tout le catalogue avec un piege de regression documente : 0 ou 1 signifient tous les deux que la prediction est *active*, seul 2 desactive reellement le DNS prefetch/preconnect. Egalement : empeche Brave de tourner en arriere-plan apres la fermeture de la fenetre, empeche WebRTC de reveler une IP locale/privee meme derriere un VPN ou un proxy, force le resolveur DNS de l'OS plutot que le resolveur interne de Chromium (coherent avec un filtre DNS systeme comme NextDNS), et desactive la detection automatique de proxy WPAD a chaque changement de reseau.
+`NetworkPredictionOptions` réglé sur **2** — c'est le seul réglage de tout le catalogue avec un piège de régression documenté : 0 ou 1 signifient tous les deux que la prédiction est *active*, seul 2 désactive réellement le DNS prefetch/preconnect. Également : empêche Brave de tourner en arrière-plan après la fermeture de la fenêtre, empêche WebRTC de révéler une IP locale/privée même derrière un VPN ou un proxy, force le résolveur DNS de l'OS plutôt que le résolveur interne de Chromium (cohérent avec un filtre DNS système comme NextDNS), et désactive la détection automatique de proxy WPAD à chaque changement de réseau.
 </details>
 
 <details>
 <summary><strong>Security</strong> — 8 policies</summary>
 
-`ComponentUpdatesEnabled` est explicitement laisse **actif** — ce n'est pas seulement le binaire Brave, cela couvre aussi Widevine, les listes Safe Browsing, et le magasin de certificats racine, donc cette policy n'est jamais touchee. Egalement : force les mises a niveau HTTPS quand disponibles, niveau Safe Browsing configurable (voir ci-dessous), bloque les outils externes de s'attacher au port de debogage distant de Brave, bloque l'authentification HTTP Basic transmise en clair, empeche l'authentification NTLM/Kerberos automatique de fuiter des identifiants Windows en navigation privee, bloque le spoofing par prompt d'authentification cross-origin, et desactive les Signed HTTP Exchanges (qui peuvent masquer l'origine reelle d'une page).
+`ComponentUpdatesEnabled` est explicitement laisse **actif** — ce n'est pas seulement le binaire Brave, cela couvre aussi Widevine, les listes Safe Browsing, et le magasin de certificats racine, donc cette policy n'est jamais touchée. Également : force les mises à niveau HTTPS quand disponibles, niveau Safe Browsing configurable (voir ci-dessous), bloque les outils externes de s'attacher au port de débogage distant de Brave, bloque l'authentification HTTP Basic transmise en clair, empêche l'authentification NTLM/Kerberos automatique de fuiter des identifiants Windows en navigation privée, bloque le spoofing par prompt d'authentification cross-origin, et désactive les Signed HTTP Exchanges (qui peuvent masquer l'origine réelle d'une page).
 </details>
 
 <details>
 <summary><strong>PrivacySandbox</strong> — 4 policies</summary>
 
-Bloque les API de profilage publicitaire de Chromium (Topics, le prompt Privacy Sandbox, les API publicitaires par site — les trois premieres sont marquees "Obsolete" dans `brave://policy/` actuel mais conservees pour compatibilite avec d'anciennes versions de Brave) et le remplacement actuellement actif, Attribution Reporting (mesure publicitaire cross-site).
+Bloque les API de profilage publicitaire de Chromium (Topics, le prompt Privacy Sandbox, les API publicitaires par site — les trois premières sont marquées "Obsolète" dans `brave://policy/` actuel mais conservées pour compatibilité avec d'anciennes versions de Brave) et le remplacement actuellement actif, Attribution Reporting (mesure publicitaire cross-site).
 </details>
 
 <details>
 <summary><strong>Performance</strong> — 2 policies</summary>
 
-Active Memory Saver (High Efficiency Mode) et regle son agressivite sur **Equilibre** plutot que Maximum — Maximum a ete volontairement ecarte car causant trop de rechargements d'onglets surprise sur un usage multi-onglets avec 16 Go de RAM disponibles. (0 = Modere, 1 = Equilibre, 2 = Maximum.)
+Active Memory Saver (High Efficiency Mode) et règle son agressivité sur **Équilibré** plutôt que Maximum — Maximum a été volontairement écarté car causant trop de rechargements d'onglets surprise sur un usage multi-onglets avec 16 Go de RAM disponibles. (0 = Modéré, 1 = Équilibré, 2 = Maximum.)
 </details>
 
-**Explicitement laisses intacts :** la traduction de pages et le correcteur orthographique (y compris le service de correction en ligne) sont des fonctionnalites utilisees et sont volontairement absents de toute la liste de policies du script, de sa categorisation, et de son self-test — pas un oubli.
+**Explicitement laisses intacts :** la traduction de pages et le correcteur orthographique (y compris le service de correction en ligne) sont des fonctionnalités utilisées et sont volontairement absents de toute la liste de policies du script, de sa catégorisation, et de son self-test — pas un oubli.
 
 ---
 
 ## Opt-in uniquement : Lockdown et DNS-over-HTTPS
 
-Deux categories supplementaires existent dans le script mais ne sont **jamais appliquees sans demande explicite** :
+Deux catégories supplémentaires existent dans le script mais ne sont **jamais appliquées sans demande explicite** :
 
 <details>
-<summary><strong>Lockdown</strong> — 5 policies, necessite <code>-IncludeLockdown</code></summary>
+<summary><strong>Lockdown</strong> — 5 policies, nécessite <code>-IncludeLockdown</code></summary>
 
-Ce ne sont pas des fuites de confidentialite — ce sont des restrictions de fonctionnalites, destinees uniquement a un choix de durcissement delibere (ex : une machine partagee ou exposee au public) : desactive le gestionnaire de mots de passe integre, l'autofill d'adresses, et l'autofill de cartes bancaires. **L'acces aux DevTools est volontairement laisse actif** meme sous `-IncludeLockdown` (un poste personnel a besoin des DevTools), et il en va de meme pour le mode Incognito (le restreindre n'a de sens que sur une machine partagee) — les deux sont verrouilles par des assertions dediees du self-test plutot que laisses au hasard.
+Ce ne sont pas des fuites de confidentialité — ce sont des restrictions de fonctionnalités, destinées uniquement à un choix de durcissement délibéré (ex : une machine partagée ou exposée au public) : désactive le gestionnaire de mots de passe intégré, l'autofill d'adresses, et l'autofill de cartes bancaires. **L'accès aux DevTools est volontairement laissé actif** même sous `-IncludeLockdown` (un poste personnel à besoin des DevTools), et il en va de même pour le mode Incognito (le restreindre n'a de sens que sur une machine partagée) — les deux sont verrouillés par des assertions dédiées du self-test plutôt que laisses au hasard.
 </details>
 
 <details>
-<summary><strong>DNS-over-HTTPS</strong> — 2 policies, necessite <code>-DnsOverHttpsTemplate &lt;url&gt;</code></summary>
+<summary><strong>DNS-over-HTTPS</strong> — 2 policies, nécessite <code>-DnsOverHttpsTemplate &lt;url&gt;</code></summary>
 
-Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Absent par defaut specifiquement pour qu'il ne puisse pas contourner silencieusement un filtre DNS systeme comme NextDNS — une assertion dediee du self-test confirme que ces deux policies sont totalement absentes de la liste de definitions tant que le parametre n'est pas fourni.
+Force le résolveur DoH propre à Brave vers un endpoint que vous fournissez. Absent par défaut spécifiquement pour qu'il ne puisse pas contourner silencieusement un filtre DNS système comme NextDNS — une assertion dédiée du self-test confirme que ces deux policies sont totalement absentes de la liste de définitions tant que le paramètre n'est pas fourni.
 </details>
 
 ---
 
-## Garanties de securite
+## Garanties de sécurité
 
 | # | Garantie |
 |---|---|
 | S1 | Sauvegarde `.reg` automatique avant toute modification (`reg export`) |
-| S2 | Rotation automatique des sauvegardes (conservation des 10 dernieres) |
-| S3 | Mode simulation pour previsualiser le diff sans rien changer |
-| S4 | Fonction de restauration complete integree (un seul choix au menu) |
-| S5 | Option "Mettre a jour" integree (nettoie les residus + re-applique en une etape) |
-| S6 | Garde-fous anti-regression integres au self-test (`NetworkPredictionOptions`, `ComponentUpdatesEnabled`) |
-| S7 | Detection de conflits (policies HKCU, sous-cle `Recommended`, residus) |
-| S8 | Verification d'integrite (policies definies vs ce qui est reellement actif dans le registre) |
-| S9 | DoH et Lockdown restent opt-in explicite — jamais appliques par defaut |
+| S2 | Rotation automatique des sauvegardes (conservation des 10 dernières) |
+| S3 | Mode simulation pour prévisualiser le diff sans rien changer |
+| S4 | Fonction de restauration complète intégrée (un seul choix au menu) |
+| S5 | Option "Mettre à jour" intégrée (nettoie les résidus + re-applique en une étape) |
+| S6 | Garde-fous anti-régression intégrés au self-test (`NetworkPredictionOptions`, `ComponentUpdatesEnabled`) |
+| S7 | Détection de conflits (policies HKCU, sous-clé `Recommended`, résidus) |
+| S8 | Vérification d'intégrité (policies définies vs ce qui est réellement actif dans le registre) |
+| S9 | DoH et Lockdown restent opt-in explicite — jamais appliqués par défaut |
 
 ---
 
-## Prerequis
+## Prérequis
 
-- Windows 10 ou 11 avec Brave Browser installe.
-- PowerShell 5.1 (integre a Windows) ou PowerShell 7+.
-- Droits administrateur — necessaires car la cible est `HKLM` (a l'echelle machine), pas `HKCU`. Le script s'auto-eleve au demarrage, sauf pour `-SelfTest` et `-DebugDefs`, qui fonctionnent en lecture seule et **ne necessitent pas** d'elevation.
-- Si le script est signe numeriquement (recommande en environnement `-ExecutionPolicy AllSigned`/`RemoteSigned`) : le certificat de signature doit etre approuve sur la machine cible.
+- Windows 10 ou 11 avec Brave Browser installé.
+- PowerShell 5.1 (intégré à Windows) ou PowerShell 7+.
+- Recommandé : **Windows Terminal** (par défaut sur Windows 11) pour le meilleur rendu de l'interface console (caractères de cadre et icônes de statut). La fenêtre console classique fonctionne aussi, mais certaines icônes dépendent de la police choisie.
+- Droits administrateur — nécessaires car la cible est `HKLM` (à l'échelle machine), pas `HKCU`. Le script s'auto-élève au démarrage, sauf pour `-SelfTest` et `-DebugDefs`, qui fonctionnent en lecture seule et **ne nécessitent pas** d'élévation.
+- Si le script est signé numériquement (recommandé en environnement `-ExecutionPolicy AllSigned`/`RemoteSigned`) : le certificat de signature doit être approuvé sur la machine cible.
 
 ---
 
-## Premier lancement (pas a pas)
+## Premier lancement (pas à pas)
 
 1. Copier `Brave-Debloat.ps1` sur la machine cible.
 
-2. Ouvrir un terminal PowerShell (pas besoin de le lancer en admin a la main — le script s'auto-eleve, sauf pour les verifications en lecture seule ci-dessous).
+2. Ouvrir un terminal PowerShell (pas besoin de le lancer en admin à la main — le script s'auto-élève, sauf pour les vérifications en lecture seule ci-dessous).
 
    Puis se placer dans le dossier qui contient le script (adapter le chemin ; garder les guillemets s'il contient des espaces) :
 
@@ -177,19 +180,19 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
    cd "$HOME\Downloads"
    ```
 
-3. **Debloquer le script** s'il a ete telecharge depuis Internet. Windows marque les fichiers telecharges, et la politique d'execution de PowerShell (`RemoteSigned`, par exemple) refuse de lancer un script marque. Depuis le dossier du script :
+3. **Débloquer le script** s'il a été téléchargé depuis Internet. Windows marque les fichiers téléchargés, et la politique d'exécution de PowerShell (`RemoteSigned`, par exemple) refuse de lancer un script marqué. Depuis le dossier du script :
 
    ```powershell
    Unblock-File .\Brave-Debloat.ps1
    ```
 
-   Si PowerShell indique plutot que l'execution de scripts est desactivee sur ce systeme (la politique par defaut de Windows est `Restricted`), autoriser d'abord les scripts pour le compte courant (la modification ne s'applique qu'a ce compte, pas a toute la machine) :
+   Si PowerShell indique plutôt que l'exécution de scripts est désactivée sur ce système (la politique par défaut de Windows est `Restricted`), autoriser d'abord les scripts pour le compte courant (la modification ne s'applique qu'à ce compte, pas à toute la machine) :
 
    ```powershell
    Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
    ```
 
-   Toujours bloque ? Voir le [guide pas a pas](https://github.com/NephVx2/Script-blocked-Look-at-this/blob/main/README_POWERSHELL_FRENCH.md).
+   Toujours bloqué ? Voir le [guide pas à pas](https://github.com/NephVx2/Script-blocked-Look-at-this/blob/main/README_POWERSHELL_FRENCH.md).
 
 4. Lancer d'abord le self-test — lecture seule, aucun droit admin requis :
 
@@ -197,9 +200,9 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
    .\Brave-Debloat.ps1 -SelfTest
    ```
 
-   Execute 21 assertions : integrite de la liste de policies (pas de doublons, types de valeurs corrects), les deux garde-fous de regression (`NetworkPredictionOptions` = 2, `ComponentUpdatesEnabled` = 1), Lockdown/DoH restent absents sans demande explicite, les DevTools restent actifs meme sous Lockdown, traduction/correcteur orthographique confirmes absents de tout le script, et plusieurs fonctions internes s'executent sans lever d'exception. Code de sortie `0` = tout passe, `1` = au moins un echec.
+   Exécute 21 assertions : intégrité de la liste de policies (pas de doublons, types de valeurs corrects), les deux garde-fous de régression (`NetworkPredictionOptions` = 2, `ComponentUpdatesEnabled` = 1), Lockdown/DoH restent absents sans demande explicite, les DevTools restent actifs même sous Lockdown, traduction/correcteur orthographique confirmés absents de tout le script, et plusieurs fonctions internes s'exécutent sans lever d'exception. Code de sortie `0` = tout passe, `1` = au moins un échec.
 
-5. *(Optionnel)* Inspecter la liste complete des policies sans toucher au registre :
+5. *(Optionnel)* Inspecter la liste complète des policies sans toucher au registre :
 
    ```powershell
    .\Brave-Debloat.ps1 -DebugDefs
@@ -211,7 +214,7 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
    .\Brave-Debloat.ps1
    ```
 
-7. Depuis le menu, previsualiser ce qui changerait **sans rien ecrire** :
+7. Depuis le menu, prévisualiser ce qui changerait **sans rien écrire** :
 
    ```
    [3] Simulate without changing (DryRun)
@@ -223,44 +226,46 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
    [1] Apply changes
    ```
 
-   Sauvegarde l'etat actuel du registre, ecrit les valeurs cibles, et enregistre le resultat pour les rapports.
+   Sauvegarde l'état actuel du registre, écrit les valeurs cibles, et enregistre le résultat pour les rapports.
 
-9. Redemarrer Brave pour que les nouvelles policies prennent effet (les navigateurs bases sur Chromium lisent la plupart des policies au demarrage). Confirmer dans le navigateur via `brave://policy/`.
+9. Redémarrer Brave pour que les nouvelles policies prennent effet (les navigateurs basés sur Chromium lisent la plupart des policies au démarrage). Confirmer dans le navigateur via `brave://policy/`.
 
-10. Verifier l'integrite a tout moment ensuite avec l'option `[9]` — utile apres une mise a jour de Brave, qui reinitialise occasionnellement certaines policies a leurs valeurs par defaut.
+10. Vérifier l'intégrité à tout moment ensuite avec l'option `[9]` — utile après une mise à jour de Brave, qui réinitialise occasionnellement certaines policies à leurs valeurs par défaut.
 
-11. Pour tout annuler, utiliser l'option `[4]` (Restaurer) — re-importe la sauvegarde prise avant la derniere modification.
+11. Pour tout annuler, utiliser l'option `[4]` (Restaurer) — re-importe la sauvegarde prise avant la dernière modification.
 
 ---
 
-## Reference du menu
+## Référence du menu
 
 | Option | Action |
 |---|---|
-| `[1]` | Appliquer les policies pour de vrai (sauvegarde → comparaison → ecriture → enregistrement des resultats) |
-| `[2]` | Mettre a jour — nettoie les residus, puis re-applique depuis zero en une etape |
-| `[3]` | Simulation : previsualise le diff sans rien ecrire |
-| `[4]` | **Restaurer** les parametres d'origine depuis la derniere sauvegarde |
+| `[1]` | Appliquer les policies pour de vrai (sauvegarde → comparaison → écriture → enregistrement des résultats) |
+| `[2]` | Mettre à jour — nettoie les résidus, puis re-applique depuis zéro en une étape |
+| `[3]` | Simulation : prévisualise le diff sans rien écrire |
+| `[4]` | **Restaurer** les paramètres d'origine depuis la dernière sauvegarde |
 | `[5]` | Lister les sauvegardes disponibles |
 | `[6]` | Vider le cache DNS manuellement |
-| `[7]` | Generer un rapport HTML (s'ouvre automatiquement dans le navigateur par defaut) |
-| `[8]` | Verifier les conflits (policies HKCU surchargeant HKLM, sous-cle `Recommended` presente, residus d'une version precedente) |
-| `[9]` | Verifier l'integrite — policies definies vs ce qui est reellement actif dans le registre en ce moment |
+| `[7]` | Générer un rapport HTML (s'ouvre automatiquement dans le navigateur par défaut) |
+| `[8]` | Vérifier les conflits (policies HKCU surchargeant HKLM, sous-clé `Recommended` présente, résidus d'une version précédente) |
+| `[9]` | Vérifier l'intégrité — policies définies vs ce qui est réellement actif dans le registre en ce moment |
 | `[10]` | Exporter la liste de policies actuellement active vers un fichier `.txt` |
 | `[Q]` | Quitter |
 
+Le menu est organisé en trois groupes — **Policies** (`[1]`–`[4]`), **Backups & DNS** (`[5]`–`[6]`) et **Reports & diagnostics** (`[7]`–`[10]`) — sous un panneau **Status** qui affiche en un coup d'œil le nombre de policies appliquées (ex : `42/53`), la dernière action et sa date, et un indicateur d'intégrité compact (la même vérification que l'option `[9]`).
+
 ---
 
-## Parametres en ligne de commande
+## Paramètres en ligne de commande
 
-| Parametre | Description |
+| Paramètre | Description |
 |---|---|
-| `-SelfTest` | Execute la batterie de tests internes a 21 assertions puis quitte. Aucun droit admin requis, registre jamais touche. |
-| `-DebugDefs` | Affiche la liste numerotee complete des policies (nom + categorie) telle que definie actuellement, plus deux verifications de presence de policies nommees, puis quitte. Aucun droit admin requis, registre jamais touche. |
-| `-Category <nom(s)>` | Restreint une action a une ou plusieurs categories (ex : `-Category Telemetry,Network`) au lieu de l'ensemble complet. |
-| `-IncludeLockdown` | Ajoute les 5 policies Lockdown opt-in a l'action lancee (appliquer/mettre a jour/simuler). Voir [Opt-in uniquement](#opt-in-uniquement--lockdown-et-dns-over-https). |
-| `-SafeBrowsingLevel <Off\|Standard\|Enhanced>` | Regle le niveau Safe Browsing de Brave. Par defaut `Standard` (listes locales, pas de partage temps reel avec Google). `Enhanced` offre une meilleure detection mais envoie en continu des URL et echantillons de page a Google. `Off` est disponible mais deconseille. |
-| `-DnsOverHttpsTemplate <url>` | Fournir ce parametre active les 2 policies DoH opt-in, pointees vers votre URL. Voir [Opt-in uniquement](#opt-in-uniquement--lockdown-et-dns-over-https). |
+| `-SelfTest` | Exécute la batterie de tests internes à 21 assertions puis quitte. Aucun droit admin requis, registre jamais touché. |
+| `-DebugDefs` | Affiche la liste numérotée complète des policies (nom + catégorie) telle que définie actuellement, plus deux vérifications de présence de policies nommées, puis quitte. Aucun droit admin requis, registre jamais touché. |
+| `-Category <nom(s)>` | Restreint une action à une ou plusieurs catégories (ex : `-Category Telemetry,Network`) au lieu de l'ensemble complet. |
+| `-IncludeLockdown` | Ajoute les 5 policies Lockdown opt-in à l'action lancée (appliquer/mettre à jour/simuler). Voir [Opt-in uniquement](#opt-in-uniquement--lockdown-et-dns-over-https). |
+| `-SafeBrowsingLevel <Off\|Standard\|Enhanced>` | Règle le niveau Safe Browsing de Brave. Par défaut `Standard` (listes locales, pas de partage temps réel avec Google). `Enhanced` offre une meilleure détection mais envoie en continu des URL et échantillons de page à Google. `Off` est disponible mais déconseillé. |
+| `-DnsOverHttpsTemplate <url>` | Fournir ce paramètre active les 2 policies DoH opt-in, pointées vers votre URL. Voir [Opt-in uniquement](#opt-in-uniquement--lockdown-et-dns-over-https). |
 
 **Exemples :**
 
@@ -274,68 +279,74 @@ Force le resolveur DoH propre a Brave vers un endpoint que vous fournissez. Abse
 
 ---
 
-## Fichiers ecrits par le script
+## Fichiers écrits par le script
 
 | Fichier / dossier | Contenu |
 |---|---|
-| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\Registry-Backups\*.reg` | Export `reg export` complet de la cle de policies, pris avant chaque ecriture reelle (rotation automatique, 10 dernieres conservees) |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\Registry-Backups\*.reg` | Export `reg export` complet de la clé de policies, pris avant chaque écriture réelle (rotation automatique, 10 dernières conservées) |
 | `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\Brave-Debloat_Log.txt` | Journal d'actions en texte brut (ajout uniquement) |
-| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\_last_state.json` | Instantane du dernier etat applique, utilise par la verification d'integrite |
-| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\*.csv` / `*.json` / `*.html` | Rapports generes via l'option de menu `[7]` |
-| Fichier d'export *(a la demande, option de menu `[10]`)* | Liste texte des policies actuellement actives |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\_last_state.json` | Instantané du dernier état appliqué, utilise par la vérification d'intégrité |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\*.csv` / `*.json` / `*.html` | Rapports générés après chaque application / mise à jour / simulation, et via l'option de menu `[7]` |
+| `%USERPROFILE%\Desktop\Maintenance_Reports\Brave-Debloat\Brave-Debloat_Export_<horodatage>.txt` *(à la demande, option de menu `[10]`)* | Liste texte des policies actuellement actives |
 
-`-SelfTest` et `-DebugDefs` n'ecrivent **aucun** fichier et ne touchent **aucune** cle de registre.
+`-SelfTest` et `-DebugDefs` n'écrivent **aucun** fichier et ne touchent **aucune** clé de registre.
 
 ---
 
-## Deploiement multi-machines
+## Déploiement multi-machines
 
 1. **Distribuer** le fichier `.ps1` vers chaque machine cible.
 
-2. **Approuver le certificat de signature** si une politique d'execution stricte est en place (`-ExecutionPolicy AllSigned`/`RemoteSigned`).
+2. **Approuver le certificat de signature** si une politique d'exécution stricte est en place (`-ExecutionPolicy AllSigned`/`RemoteSigned`).
 
-3. **Executer `-SelfTest` en premier** sur chaque machine — aucun droit admin necessaire, registre non touche, sans risque a lancer avant de decider de la suite.
+3. **Exécuter `-SelfTest` en premier** sur chaque machine — aucun droit admin nécessaire, registre non touché, sans risque à lancer avant de décider de la suite.
 
-4. Comme il s'agit d'une **modification de configuration durable pilotee par menu** (pas d'une tache de nettoyage ponctuelle), ce n'est pas un candidat direct pour une tache planifiee silencieuse. Pour un deploiement multi-machines non supervise, l'option la plus propre est d'appeler `Invoke-BraveAction` directement depuis votre propre script d'encapsulation avec les parametres necessaires (`-Category`, `-IncludeLockdown`, etc.) plutot que de piloter le menu interactif.
+4. Comme il s'agit d'une **modification de configuration durable pilotée par menu** (pas d'une tâche de nettoyage ponctuelle), ce n'est pas un candidat direct pour une tâche planifiée silencieuse. Pour un déploiement multi-machines non supervisé, l'option la plus propre est d'appeler `Invoke-BraveAction` directement depuis votre propre script d'encapsulation avec les paramètres nécessaires (`-Category`, `-IncludeLockdown`, etc.) plutôt que de piloter le menu interactif.
 
-5. Les sauvegardes, logs et rapports sont ecrits dans le profil de l'utilisateur qui execute le script — propres a chaque machine, non centralises automatiquement.
+5. Les sauvegardes, logs et rapports sont écrits dans le profil de l'utilisateur qui exécute le script — propres à chaque machine, non centralisés automatiquement.
 
-6. Si votre parc utilise Group Policy ou une solution MDM qui gere deja Brave de maniere centralisee, verifier les conflits (option de menu `[8]`) avant de lancer ce script sur une machine geree par domaine — les policies HKLM definies ici pourraient entrer en concurrence avec celles poussees par ce systeme.
+6. Si votre parc utilise Group Policy ou une solution MDM qui gère déjà Brave de manière centralisée, vérifier les conflits (option de menu `[8]`) avant de lancer ce script sur une machine gérée par domaine — les policies HKLM définies ici pourraient entrer en concurrence avec celles poussées par ce système.
 
 ---
 
-## Depannage
+## Dépannage
 
 <details>
-<summary><strong>Une policy apparait active dans le registre mais Brave ne semble pas la respecter</strong></summary>
+<summary><strong>Une policy apparaît active dans le registre mais Brave ne semble pas la respecter</strong></summary>
 
-Redemarrer Brave — les navigateurs bases sur Chromium lisent la plupart des policies au demarrage, pas en temps reel. Confirmer via `brave://policy/`, qui montre chaque policy que Brave voit actuellement, sa source, et sa valeur reellement appliquee.
+Redémarrer Brave — les navigateurs basés sur Chromium lisent la plupart des policies au démarrage, pas en temps réel. Confirmer via `brave://policy/`, qui montre chaque policy que Brave voit actuellement, sa source, et sa valeur réellement appliquée.
 </details>
 
 <details>
-<summary><strong>La verification d'integrite (option [9]) signale une derive apres une mise a jour de Brave</strong></summary>
+<summary><strong>La vérification d'intégrité (option [9]) signale une dérive après une mise à jour de Brave</strong></summary>
 
-Certaines mises a jour de Brave reinitialisent ou reintroduisent des valeurs par defaut pour certaines policies. Relancer l'option `[2]` (Mettre a jour) pour nettoyer et re-appliquer depuis les definitions actuelles du script.
+Certaines mises à jour de Brave réinitialisent ou réintroduisent des valeurs par défaut pour certaines policies. Relancer l'option `[2]` (Mettre à jour) pour nettoyer et re-appliquer depuis les définitions actuelles du script.
 </details>
 
 <details>
-<summary><strong>La verification de conflits (option [8]) signale une policy HKCU ou une sous-cle Recommended</strong></summary>
+<summary><strong>La vérification de conflits (option [8]) signale une policy HKCU ou une sous-clé Recommended</strong></summary>
 
-Une policy au niveau HKCU pour le meme parametre, ou une sous-cle `Recommended` sous le chemin de policy gere, peut surcharger ou masquer ce que ce script definit au niveau `HKLM`. Investiguer ce qui l'a creee (un autre outil, un residu de test manuel, ou une gestion reelle par domaine/MDM) avant de la supprimer.
+Une policy au niveau HKCU pour le même paramètre, ou une sous-clé `Recommended` sous le chemin de policy géré, peut surcharger ou masquer ce que ce script définit au niveau `HKLM`. Investiguer ce qui l'a créée (un autre outil, un résidu de test manuel, ou une gestion réelle par domaine/MDM) avant de la supprimer.
+</details>
+
+<details>
+<summary><strong>Certaines icônes ou caractères de cadre s'affichent en carrés ou semblent décalés</strong></summary>
+
+L'interface console utilise des caractères Unicode (lignes de cadre et icônes de statut comme `✔ ✘ ▲ ● ○ ◆`). **Windows Terminal** les affiche correctement sans configuration. Dans la fenêtre console classique, la police choisie peut ne pas contenir certains glyphes — passer à une police comme **Cascadia Mono** ou **Consolas**, ou lancer le script depuis Windows Terminal. C'est purement cosmétique et n'affecte jamais ce que fait le script.
 </details>
 
 <details>
 <summary><strong>-SelfTest signale un FAIL</strong></summary>
 
-Les 21 assertions sont des verifications de coherence interne sur les definitions de policies et les fonctions auxiliaires — un FAIL pointe vers un invariant precis casse (ex : `NetworkPredictionOptions` ne ciblant plus 2, un nom de policy duplique, des policies Lockdown presentes sans `-IncludeLockdown`). Lire le nom de l'assertion en echec pour identifier le probleme precis.
+Les 21 assertions sont des vérifications de cohérence interne sur les définitions de policies et les fonctions auxiliaires — un FAIL pointe vers un invariant précis casse (ex : `NetworkPredictionOptions` ne ciblant plus 2, un nom de policy dupliqué, des policies Lockdown présentes sans `-IncludeLockdown`). Lire le nom de l'assertion en échec pour identifier le problème précis.
 </details>
 
 <details>
-<summary><strong>Je veux changer la valeur cible d'une policy specifique</strong></summary>
+<summary><strong>Je veux changer la valeur cible d'une policy spécifique</strong></summary>
 
-Editer directement sa ligne `New-Policy` dans `Get-BravePolicyDefinitions`, puis relancer `-SelfTest` avant d'appliquer — plusieurs policies ont un piege de regression documente dans le commentaire qui les entoure (`NetworkPredictionOptions`, `ComponentUpdatesEnabled` en particulier), donc lire le commentaire au-dessus de la ligne avant de changer sa valeur.
+Éditer directement sa ligne `New-Policy` dans `Get-BravePolicyDefinitions`, puis relancer `-SelfTest` avant d'appliquer — plusieurs policies ont un piège de régression documenté dans le commentaire qui les entoure (`NetworkPredictionOptions`, `ComponentUpdatesEnabled` en particulier), donc lire le commentaire au-dessus de la ligne avant de changer sa valeur.
 </details>
 
 ---
 
-<sub>Brave-Debloat — base sur le registre (policies HKLM uniquement), sauvegarde automatique avant chaque modification, rien d'opt-in applique sans flag explicite.</sub>
+<sub>Brave-Debloat — basé sur le registre (policies HKLM uniquement), sauvegarde automatique avant chaque modification, rien d'opt-in appliqué sans flag explicite.</sub>
